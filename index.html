@@ -3,268 +3,466 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Поиск по займу</title>
+  <title>Post-Purchase Verification Report</title>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: #f0f2f5;
-      display: flex;
-      justify-content: center;
-      padding: 48px 16px;
       min-height: 100vh;
+      padding: 32px 24px 64px;
+      color: #222;
     }
 
-    .container {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
-      padding: 40px;
-      width: 100%;
-      max-width: 680px;
-      height: fit-content;
-    }
-
-    h1 {
-      font-size: 22px;
-      color: #1a1a2e;
+    header {
       margin-bottom: 28px;
     }
 
-    .search-row {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 32px;
+    header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a1a2e;
     }
 
-    input[type="text"] {
-      flex: 1;
+    header p {
+      margin-top: 4px;
+      font-size: 13px;
+      color: #888;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      padding: 28px 32px;
+      margin-bottom: 24px;
+    }
+
+    .input-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 80px;
       padding: 10px 14px;
       border: 1px solid #cdd3da;
       border-radius: 8px;
-      font-size: 15px;
+      font-size: 14px;
+      font-family: 'Segoe UI', sans-serif;
       color: #333;
+      resize: vertical;
       outline: none;
       transition: border-color 0.2s;
+      line-height: 1.5;
     }
 
-    input[type="text"]:focus {
-      border-color: #4f7ef7;
+    textarea:focus { border-color: #4f7ef7; }
+    textarea::placeholder { color: #bbb; }
+
+    .hint {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #999;
     }
 
-    input[type="text"]::placeholder {
-      color: #aaa;
-    }
-
-    button {
-      padding: 10px 24px;
-      background: #4f7ef7;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 15px;
-      cursor: pointer;
-      transition: background 0.2s;
-      white-space: nowrap;
-    }
-
-    button:hover {
-      background: #3563d8;
-    }
-
-    .btn-csv {
-      margin-top: 16px;
-      background: #fff;
-      color: #4f7ef7;
-      border: 1.5px solid #4f7ef7;
-      font-size: 14px;
-      padding: 8px 18px;
-    }
-
-    .btn-csv:hover {
-      background: #f0f4ff;
-    }
-
-    .result-area {
-      min-height: 60px;
-    }
-
-    .error-msg {
+    .error {
+      margin-top: 8px;
+      font-size: 13px;
       color: #d94f4f;
-      font-size: 14px;
-      margin-bottom: 12px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 15px;
-    }
-
-    thead tr {
-      background: #f5f7ff;
-    }
-
-    th {
-      text-align: left;
-      padding: 12px 16px;
-      color: #555;
-      font-weight: 600;
-      border-bottom: 2px solid #e4e8f0;
-    }
-
-    td {
-      padding: 14px 16px;
-      color: #222;
-      border-bottom: 1px solid #eef0f5;
-    }
-
-    tr:last-child td {
-      border-bottom: none;
-    }
-
-    .hidden {
+      background: #fff5f5;
+      border: 1px solid #fbc5c5;
+      border-radius: 6px;
+      padding: 8px 12px;
       display: none;
     }
 
-    .label-number {
-      font-size: 12px;
-      color: #888;
-      margin-bottom: 6px;
+    .error.visible { display: block; }
+
+    .btn-row {
+      margin-top: 16px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
     }
+
+    .btn {
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: background 0.18s, opacity 0.18s;
+      white-space: nowrap;
+    }
+
+    .btn-primary { background: #4f7ef7; color: #fff; }
+    .btn-primary:hover { background: #3563d8; }
+
+    .btn-csv {
+      background: #fff;
+      color: #4f7ef7;
+      border: 1.5px solid #4f7ef7;
+    }
+    .btn-csv:hover { background: #f0f4ff; }
+
+    .btn-xls {
+      background: #fff;
+      color: #1a9e5c;
+      border: 1.5px solid #1a9e5c;
+    }
+    .btn-xls:hover { background: #f0faf5; }
+
+    .btn:disabled { opacity: 0.4; cursor: default; }
+
+    /* Table area */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid #e4e8f0;
+    }
+
+    table {
+      border-collapse: collapse;
+      font-size: 13px;
+      min-width: 1800px;
+      width: 100%;
+    }
+
+    thead tr { background: #f5f7ff; }
+
+    th {
+      padding: 11px 14px;
+      text-align: left;
+      color: #555;
+      font-weight: 600;
+      border-bottom: 2px solid #e4e8f0;
+      white-space: nowrap;
+      position: sticky;
+      top: 0;
+      background: #f5f7ff;
+      z-index: 1;
+    }
+
+    td {
+      padding: 12px 14px;
+      color: #222;
+      border-bottom: 1px solid #eef0f5;
+      white-space: nowrap;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafbff; }
 
     .badge {
       display: inline-block;
-      padding: 3px 10px;
-      border-radius: 12px;
-      font-size: 13px;
+      padding: 2px 9px;
+      border-radius: 10px;
+      font-size: 12px;
       font-weight: 600;
     }
 
-    .badge-active {
-      background: #e6f9f0;
-      color: #1a9e5c;
+    .badge-yes  { background: #e6f9f0; color: #1a9e5c; }
+    .badge-no   { background: #f2f2f2; color: #888; }
+    .badge-new  { background: #fff4e0; color: #d97706; }
+    .badge-promo { background: #ede9fe; color: #7c3aed; }
+    .badge-std  { background: #e0f2fe; color: #0369a1; }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
     }
 
-    .badge-closed {
-      background: #f2f2f2;
+    .results-header h2 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1a1a2e;
+    }
+
+    .results-header .count {
+      font-size: 13px;
       color: #888;
     }
+
+    .download-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .section-hidden { display: none; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Поиск клиента по займу</h1>
 
-    <div class="search-row">
-      <input
-        type="text"
-        id="loanInput"
-        placeholder="Введите номера займов, напр. Z-001, Z-002"
-      />
-      <button onclick="search()">Найти</button>
+<header>
+  <h1>Post-Purchase Verification Report</h1>
+  <p>Введите номера займов для загрузки данных верификации</p>
+</header>
+
+<div class="card">
+  <label class="input-label" for="loanInput">Номера займов</label>
+  <textarea
+    id="loanInput"
+    placeholder="565624353803, 00000-50873, 565624353804"
+  ></textarea>
+  <div class="hint">Форматы: 12 цифр (565624353803) или XXXXX-XXXXX (00000-50873). Разделитель — запятая.</div>
+  <div class="error" id="errorMsg"></div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="loadData()">Загрузить данные</button>
+  </div>
+</div>
+
+<div class="section-hidden" id="resultsSection">
+  <div class="results-header">
+    <div>
+      <h2>Результаты</h2>
+      <span class="count" id="countLabel"></span>
     </div>
-
-    <div class="result-area">
-      <div class="error-msg hidden" id="errorMsg">Заём не найден.</div>
-
-      <table class="hidden" id="resultTable">
-        <thead>
-          <tr>
-            <th>Имя клиента</th>
-            <th>Дата рождения</th>
-            <th>Номер телефона</th>
-            <th>Статус займа</th>
-          </tr>
-        </thead>
-        <tbody id="resultBody"></tbody>
-      </table>
-
-      <div class="hidden" id="csvRow">
-        <button class="btn-csv" onclick="downloadCSV()">Скачать CSV</button>
-      </div>
+    <div class="download-row">
+      <button class="btn btn-csv" onclick="downloadCSV()">Скачать CSV</button>
+      <button class="btn btn-xls" onclick="downloadXLS()">Скачать Excel (XLS)</button>
     </div>
   </div>
 
-  <script>
-    const loans = {
-      "Z-001": { name: "Иванов Алексей Петрович",    dob: "12.03.1985", phone: "+7 (900) 123-45-67", status: "active"  },
-      "Z-002": { name: "Смирнова Ольга Викторовна",  dob: "07.11.1990", phone: "+7 (911) 234-56-78", status: "closed"  },
-      "Z-003": { name: "Козлов Дмитрий Сергеевич",   dob: "25.06.1978", phone: "+7 (922) 345-67-89", status: "active"  },
-      "Z-004": { name: "Новикова Мария Андреевна",   dob: "19.02.1995", phone: "+7 (933) 456-78-90", status: "active"  },
-      "Z-005": { name: "Попов Игорь Николаевич",     dob: "30.09.1982", phone: "+7 (944) 567-89-01", status: "closed"  },
-    };
+  <div class="table-wrap">
+    <table id="resultTable">
+      <thead>
+        <tr>
+          <th>Номер займа</th>
+          <th>Дата утверждения</th>
+          <th>Дата погашения</th>
+          <th>CIF ID</th>
+          <th>Номер счёта</th>
+          <th>Имя</th>
+          <th>Отчество</th>
+          <th>Дата рождения</th>
+          <th>Телефон</th>
+          <th>Email</th>
+          <th>Гражданство</th>
+          <th>Характер работы</th>
+          <th>Профессия</th>
+          <th>Работодатель</th>
+          <th>Источник дохода</th>
+          <th>Ежемесячный доход</th>
+          <th>Тип документа</th>
+          <th>Extra Care Package</th>
+          <th>Sale Tag</th>
+          <th>Дата продажи</th>
+        </tr>
+      </thead>
+      <tbody id="resultBody"></tbody>
+    </table>
+  </div>
+</div>
 
-    function search() {
-      const input = document.getElementById("loanInput").value;
-      const table = document.getElementById("resultTable");
-      const body  = document.getElementById("resultBody");
-      const error = document.getElementById("errorMsg");
+<script>
+  const LOAN_RE_12  = /^\d{12}$/;
+  const LOAN_RE_DASH = /^\d{5}-\d{5}$/;
 
-      table.classList.add("hidden");
-      error.classList.add("hidden");
-      document.getElementById("csvRow").classList.add("hidden");
-      body.innerHTML = "";
+  const db = {
+    "565624353803": {
+      approvalDate: "15.01.2024", repaymentDate: "15.01.2026",
+      cifId: "CIF-100123",       account: "ACC-2024-001",
+      firstName: "Айгерим",      middleName: "Бекова",
+      dob: "22.05.1990",         phone: "+7 (701) 234-56-78",
+      email: "aigerim.bekova@mail.kz",
+      citizenship: "Казахстан",  workNature: "Наёмный работник",
+      profession: "Бухгалтер",   employer: 'ТОО "АльфаСтрой"',
+      incomeSource: "Заработная плата", monthlyIncome: "350 000 ₸",
+      docType: "Удостоверение личности",
+      extraCare: "Да",           saleTag: "NEW",
+      saleDate: "14.01.2024"
+    },
+    "00000-50873": {
+      approvalDate: "03.03.2024", repaymentDate: "03.03.2025",
+      cifId: "CIF-200456",        account: "ACC-2024-002",
+      firstName: "Дмитрий",       middleName: "Соколов",
+      dob: "08.11.1985",          phone: "+7 (727) 345-67-89",
+      email: "d.sokolov@gmail.com",
+      citizenship: "Россия",      workNature: "Самозанятый",
+      profession: "ИТ-консультант", employer: "ИП Соколов Д.В.",
+      incomeSource: "Предпринимательская деятельность", monthlyIncome: "520 000 ₸",
+      docType: "Паспорт",
+      extraCare: "Нет",           saleTag: "PROMO",
+      saleDate: "01.03.2024"
+    },
+    "565624353804": {
+      approvalDate: "20.04.2024", repaymentDate: "20.10.2024",
+      cifId: "CIF-300789",        account: "ACC-2024-003",
+      firstName: "Зарина",        middleName: "Нурланова",
+      dob: "14.07.1995",          phone: "+7 (777) 456-78-90",
+      email: "z.nurlanova@yandex.kz",
+      citizenship: "Казахстан",   workNature: "Наёмный работник",
+      profession: "Менеджер по продажам", employer: 'АО "БетаТрейд"',
+      incomeSource: "Заработная плата", monthlyIncome: "280 000 ₸",
+      docType: "Удостоверение личности",
+      extraCare: "Да",            saleTag: "STANDARD",
+      saleDate: "19.04.2024"
+    }
+  };
 
-      const ids = input.split(",").map(s => s.trim().toUpperCase()).filter(Boolean);
-      if (!ids.length) return;
+  const HEADERS = [
+    "Номер займа", "Дата утверждения", "Дата погашения", "CIF ID",
+    "Номер счёта", "Имя", "Отчество", "Дата рождения", "Телефон", "Email",
+    "Гражданство", "Характер работы", "Профессия", "Работодатель",
+    "Источник дохода", "Ежемесячный доход", "Тип документа",
+    "Extra Care Package", "Sale Tag", "Дата продажи"
+  ];
 
-      const notFound = [];
+  function recordToRow(loanId, r) {
+    return [
+      loanId, r.approvalDate, r.repaymentDate, r.cifId, r.account,
+      r.firstName, r.middleName, r.dob, r.phone, r.email,
+      r.citizenship, r.workNature, r.profession, r.employer,
+      r.incomeSource, r.monthlyIncome, r.docType,
+      r.extraCare, r.saleTag, r.saleDate
+    ];
+  }
 
-      ids.forEach(id => {
-        const record = loans[id];
-        if (!record) {
-          notFound.push(id);
-          return;
-        }
-        const statusLabel = record.status === "active" ? "Активен" : "Закрыт";
-        const statusClass = record.status === "active" ? "badge-active" : "badge-closed";
+  function saleTagBadge(tag) {
+    const map = { NEW: "badge-new", PROMO: "badge-promo", STANDARD: "badge-std" };
+    return `<span class="badge ${map[tag] || ''}">${tag}</span>`;
+  }
 
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${record.name}</td>
-          <td>${record.dob}</td>
-          <td>${record.phone}</td>
-          <td><span class="badge ${statusClass}">${statusLabel}</span></td>
-        `;
-        body.appendChild(row);
-      });
+  function extraCareBadge(val) {
+    return val === "Да"
+      ? `<span class="badge badge-yes">Да</span>`
+      : `<span class="badge badge-no">Нет</span>`;
+  }
 
-      if (body.children.length) {
-        table.classList.remove("hidden");
-        document.getElementById("csvRow").classList.remove("hidden");
-      }
+  let currentRows = [];
 
-      if (notFound.length) {
-        error.textContent = `Не найдено: ${notFound.join(", ")}`;
-        error.classList.remove("hidden");
-      }
+  function loadData() {
+    const raw = document.getElementById("loanInput").value;
+    const errorEl = document.getElementById("errorMsg");
+    errorEl.classList.remove("visible");
+    errorEl.textContent = "";
+
+    const ids = raw.split(",").map(s => s.trim()).filter(Boolean);
+
+    if (!ids.length) {
+      showError("Введите хотя бы один номер займа.");
+      return;
     }
 
-    function downloadCSV() {
-      const headers = ["Имя клиента", "Дата рождения", "Номер телефона", "Статус займа"];
-      const rows = Array.from(document.querySelectorAll("#resultBody tr")).map(tr =>
-        Array.from(tr.querySelectorAll("td")).map(td => `"${td.innerText.trim()}"`)
-      );
-
-      const csv = [headers.join(";"), ...rows.map(r => r.join(";"))].join("\n");
-      const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "loan.csv";
-      a.click();
-      URL.revokeObjectURL(url);
+    const invalid = ids.filter(id => !LOAN_RE_12.test(id) && !LOAN_RE_DASH.test(id));
+    if (invalid.length) {
+      showError(`Неверный формат: ${invalid.join(", ")}. Ожидается 12 цифр или XXXXX-XXXXX.`);
+      return;
     }
 
-    document.getElementById("loanInput").addEventListener("keydown", function (e) {
-      if (e.key === "Enter") search();
+    const notFound = [];
+    currentRows = [];
+
+    ids.forEach(id => {
+      const r = db[id];
+      if (!r) { notFound.push(id); return; }
+      currentRows.push(recordToRow(id, r));
     });
-  </script>
+
+    renderTable();
+
+    if (notFound.length) {
+      showError(`Не найдено в базе: ${notFound.join(", ")}`);
+    }
+  }
+
+  function showError(msg) {
+    const el = document.getElementById("errorMsg");
+    el.textContent = msg;
+    el.classList.add("visible");
+  }
+
+  function renderTable() {
+    const body = document.getElementById("resultBody");
+    const section = document.getElementById("resultsSection");
+    body.innerHTML = "";
+
+    if (!currentRows.length) {
+      section.classList.add("section-hidden");
+      return;
+    }
+
+    currentRows.forEach(row => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = row.map((cell, i) => {
+        if (i === 17) return `<td>${extraCareBadge(cell)}</td>`;
+        if (i === 18) return `<td>${saleTagBadge(cell)}</td>`;
+        return `<td>${cell}</td>`;
+      }).join("");
+      body.appendChild(tr);
+    });
+
+    document.getElementById("countLabel").textContent =
+      `Найдено записей: ${currentRows.length}`;
+    section.classList.remove("section-hidden");
+  }
+
+  function downloadCSV() {
+    const lines = [
+      HEADERS.join(";"),
+      ...currentRows.map(row => row.map(c => `"${c}"`).join(";"))
+    ];
+    const blob = new Blob(["﻿" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+    triggerDownload(blob, "post_purchase_report.csv");
+  }
+
+  function downloadXLS() {
+    const esc = s => String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+
+    const makeRow = cells =>
+      `<Row>${cells.map(c => `<Cell><Data ss:Type="String">${esc(c)}</Data></Cell>`).join("")}</Row>`;
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+  xmlns:x="urn:schemas-microsoft-com:office:excel">
+  <Styles>
+    <Style ss:ID="header">
+      <Font ss:Bold="1"/>
+      <Interior ss:Color="#EEF0FF" ss:Pattern="Solid"/>
+    </Style>
+  </Styles>
+  <Worksheet ss:Name="Report">
+    <Table>
+      ${makeRow(HEADERS).replace("<Row>", '<Row ss:StyleID="header">')}
+      ${currentRows.map(makeRow).join("\n      ")}
+    </Table>
+  </Worksheet>
+</Workbook>`;
+
+    const blob = new Blob([xml], { type: "application/vnd.ms-excel;charset=utf-8;" });
+    triggerDownload(blob, "post_purchase_report.xls");
+  }
+
+  function triggerDownload(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  document.getElementById("loanInput").addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); loadData(); }
+  });
+</script>
 </body>
 </html>
